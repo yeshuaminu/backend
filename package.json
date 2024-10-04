@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "node .",
-    "dev": "npx nodemon ."
+    "dev": "npx nodemon .",
+    "publish:new":"npx heroku create"
   },
   "keywords": [],
   "author": "",
@@ -20,6 +21,7 @@
     "stripe": "^16.12.0"
   },
   "devDependencies": {
+    "heroku": "^8.7.1",
     "nodemon": "^3.1.7"
   }
 }

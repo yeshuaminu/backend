@@ -10,8 +10,6 @@ const dishes = require("./models/dishes")
 const orders = require("./models/orders")
 const users = require("./models/users")
 const { web } = require("./client_secret.json")
-const { apiResolver } = require("next/dist/next-server/server/api-utils")
-const { userInfo } = require("os")
 const oauth2Client = new google.Auth.OAuth2Client(
     web.client_id,
     web.client_secret,
