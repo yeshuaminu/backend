@@ -16,7 +16,7 @@ const oauth2Client = new google.Auth.OAuth2Client(
     web.redirect_uris[0]
 );
 
-const { MONGO_URI, STRIPE_KEY } = process.env
+const { MONGO_URI, STRIPE_KEY, PORT=8080 } = process.env
 
 const stripe = require("stripe")(
     STRIPE_KEY
@@ -180,8 +180,8 @@ app.get("/api/users/oauth2", async (req, res) => {
     }
 })
 
-app.listen(8080, () => {
-    console.info("listening on port 8080")
+app.listen(PORT, () => {
+    console.info("listening on port " + PORT)
 })
 mongoose.connect(MONGO_URI)
     .then(() => {
