@@ -16,7 +16,7 @@ const oauth2Client = new google.Auth.OAuth2Client(
     web.redirect_uris[0]
 );
 
-const { MONGO_URI, STRIPE_KEY, PORT=8080 } = process.env
+const { MONGO_URI, STRIPE_KEY, PORT=8080, FRONTEND="http://localhost:3000" } = process.env
 
 const stripe = require("stripe")(
     STRIPE_KEY
@@ -169,14 +169,14 @@ app.get("/api/users/oauth2", async (req, res) => {
     const existingUser = await users.findOne({ googleId:id })
     if(existingUser){
         req.session.userId = existingUser._id
-        res.redirect("http://localhost:3000")
+        res.redirect(FRONTEND)
     } else {
         const newUser = await users.create({
             name: name,
             googleId:id
         })
         req.session.userId = newUser._id
-        res.redirect("http://localhost:3000")
+        res.redirect(FRONTEND)
     }
 })
 
