@@ -14,7 +14,7 @@ const tickets = require("./models/tickets")
 const oauth2Client = new google.Auth.OAuth2Client(
     web.client_id,
     web.client_secret,
-    web.redirect_uris[0]
+    web.redirect_uris[process.env.NODE_ENV === "production" ? 1 : 0]
 );
 
 const { MONGO_URI, STRIPE_KEY, PORT=8080, FRONTEND="http://localhost:3000" } = process.env
