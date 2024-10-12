@@ -10,6 +10,7 @@ const dishes = require("./models/dishes")
 const orders = require("./models/orders")
 const users = require("./models/users")
 const { web } = require("./client_secret.json")
+const tickets = require("./models/tickets")
 const oauth2Client = new google.Auth.OAuth2Client(
     web.client_id,
     web.client_secret,
@@ -89,8 +90,6 @@ app.post("/api/users/register", async (req, res) => {
         ...userData,
         email: email
     })
-    req.session.userId = newUser._id.toString()
-    console.log(newUser._id, req.session.userId)
     res.sendStatus(201)
 })
 
@@ -178,6 +177,11 @@ app.get("/api/users/oauth2", async (req, res) => {
         req.session.userId = newUser._id
         res.redirect(FRONTEND)
     }
+})
+
+app.post("/api/tickets", async (req, res) => {
+    const newTicket = await tickets.create(req.body)
+    res.json(newTicket)
 })
 
 app.listen(PORT, () => {
