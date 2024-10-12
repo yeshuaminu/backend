@@ -155,7 +155,7 @@ app.get("/api/users/oauth2", async (req, res) => {
     const userClient = new google.Auth.OAuth2Client(
         web.client_id,
         web.client_secret,
-        web.redirect_uris[0]
+        web.redirect_uris[process.env.NODE_ENV === "production" ? 1 : 0]
     );
     userClient.setCredentials(tokens)
 
