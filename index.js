@@ -14,10 +14,10 @@ const tickets = require("./models/tickets")
 const oauth2Client = new google.Auth.OAuth2Client(
     web.client_id,
     web.client_secret,
-    web.redirect_uris[process.env.NODE_ENV === "production" ? 1 : 0]
+    web.redirect_uris[process.env.NODE_ENV === "production" ? 0 : 1]
 );
 
-const { MONGO_URI, STRIPE_KEY, PORT = 8080, FRONTEND = "http://localhost:3000" } = process.env
+const { MONGO_URI, STRIPE_KEY, PORT = 8080 } = process.env
 
 const stripe = require("stripe")(
     STRIPE_KEY
@@ -93,15 +93,11 @@ app.post("/api/users/register", async (req, res) => {
     res.sendStatus(201)
 })
 
-app.get("/api/users/me", async (req, res) => {
+app.get("/api/users/me", attemptOAuth2Session, async (req, res) => {
     console.log(req.session)
     if (!req.session.userId) {
-        if (req.query.userId) {
-            req.session.userId = req.query.userId
-        } else {
-            res.status(403).json({ message: "Unauthorized" })
-            return
-        }
+        res.status(403).json({ message: "Unauthorized" })
+        return
     }
 
     const foundUser = await users.findById(req.session.userId)
@@ -153,34 +149,40 @@ app.get("/api/users/oauth2/start", async (req, res) => {
     })
 })
 
-app.get("/api/users/oauth2", async (req, res) => {
+async function attemptOAuth2Session(req, res, next) {
     const { code } = req.query
-    const { tokens } = await oauth2Client.getToken(code)
-    const userClient = new google.Auth.OAuth2Client(
-        web.client_id,
-        web.client_secret,
-        web.redirect_uris[process.env.NODE_ENV === "production" ? 1 : 0]
-    );
-    userClient.setCredentials(tokens)
-
-    const oauth2 = new google.oauth2_v2.Oauth2({
-        auth: userClient
-    })
-    const userinfo = await oauth2.userinfo.get()
-    console.log(userinfo.data)
-    const { id, name } = userinfo.data
-    const existingUser = await users.findOne({ googleId: id })
-    if (existingUser) {
-        req.session.userId = existingUser._id
-    } else {
-        const newUser = await users.create({
-            name: name,
-            googleId: id
-        })
-        req.session.userId = newUser._id
+    if (!code) {
+        next()
+        return
     }
-    res.redirect(`${FRONTEND}?userId=${req.session.userId}`)
-})
+    try {
+        const { tokens } = await oauth2Client.getToken(code)
+        const userClient = new google.Auth.OAuth2Client(
+            web.client_id,
+            web.client_secret,
+            web.redirect_uris[process.env.NODE_ENV === "production" ? 1 : 0]
+        );
+        userClient.setCredentials(tokens)
+
+        const oauth2 = new google.oauth2_v2.Oauth2({
+            auth: userClient
+        })
+        const userinfo = await oauth2.userinfo.get()
+        console.log(userinfo.data)
+        const { id, name } = userinfo.data
+        const existingUser = await users.findOne({ googleId: id })
+        if (existingUser) {
+            req.session.userId = existingUser._id
+        } else {
+            const newUser = await users.create({
+                name: name,
+                googleId: id
+            })
+            req.session.userId = newUser._id
+        }
+    } catch (error) { }
+    next()
+}
 
 app.post("/api/tickets", async (req, res) => {
     const newTicket = await tickets.create(req.body)
