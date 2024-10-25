@@ -70,6 +70,16 @@ app.post("/api/orders", async (req, res) => {
     });
     const newOrder = await orders.create({
         ...orderData,
+        dishes: orderData.dishes.filter((dish) => {
+            return !dish.item.startsWith("giftcard")
+        }),
+        giftCards: orderData.dishes.reduce((acc, dish) => {
+            if (!dish.item.startsWith("giftcard")) {
+                return acc
+            }
+            const value = +dish.item.split("-").pop()
+            return value * dish.quantity
+        }, 0),
         amount: stripeAmount,
         charge: charge.id,
         customer: req.session.userId

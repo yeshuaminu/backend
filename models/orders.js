@@ -16,6 +16,9 @@ const schema = new mongoose.Schema({
             ref: "Dish"
         }
     }],
+    giftCards: {
+        type: Number
+    },
     amount: {
         type: Number,
         required: true
